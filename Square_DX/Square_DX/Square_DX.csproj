@@ -38,7 +38,13 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Game1.cs" />
+    <Compile Include="BasicClasses\Sprite.cs" />
+    <Compile Include="MainGameLoop.cs" />
+    <Compile Include="BasicClasses\GameState.cs" />
+    <Compile Include="Input\IInputSubscriber.cs" />
+    <Compile Include="Input\KeyboardChangeState.cs" />
+    <Compile Include="Input\KeyboardListener.cs" />
+    <Compile Include="Input\MouseListener.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
