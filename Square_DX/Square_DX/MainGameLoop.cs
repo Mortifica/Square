@@ -210,6 +210,10 @@ namespace Square_DX
         public class PlayState : GameState, IInputSubscriber
         {
             private SpriteFont font;
+            private Character player;
+            private Texture2D playerTexture;
+            private Texture2D blockTexture;
+            private List<Block> blocks = new List<Block>();
             public PlayState(MainGameLoop game)
                 : base(game)
             {
@@ -218,21 +222,34 @@ namespace Square_DX
             private void init()
             {
                 font = game.Content.Load<SpriteFont>("startMenuFont");
+                playerTexture = game.Content.Load<Texture2D>("Blue_Square");
+                blockTexture = game.Content.Load<Texture2D>("Block_Brown");
+                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture);
+                for (int i = 0; i < 50; i++)
+                {
+                    blocks.Add(new Block(new Vector2(blockTexture.Width * i, 300), blockTexture));
+                }
                 Listener = new KeyboardListener();
                 Listener.AddSubscriber(this);
+                Listener.AddSubscriber(player);
             }
 
             public override void Update(GameTime gameTime)
             {
-                
+                Listener.Update(Keyboard.GetState(), gameTime);
             }
             public override void Draw(SpriteBatch spriteBatch)
             {
+                foreach (var block in blocks)
+                {
+                    block.Draw(spriteBatch);
+                }
+                player.Draw(spriteBatch);
                 spriteBatch.DrawString(font, "Game Running", new Vector2(200, 200), Color.BurlyWood);
             }
             public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
             {
-                throw new NotImplementedException();
+                
             }
         }
 
