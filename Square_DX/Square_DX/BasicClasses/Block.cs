@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Square_DX.BasicClasses
 {
-    class Block
+    public class Block
     {
         private Sprite Texture { get; set; }
         public Vector2 Location { get; set; }

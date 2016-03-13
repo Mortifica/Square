@@ -11,14 +11,20 @@ namespace Square_DX.BasicClasses
 {
     public class Character : IInputSubscriber
     {
-        private Sprite Texture { get; set; }
+        public Sprite Texture { get; set; }
         public Vector2 Location { get; set; }
         private int characterSpeed = 50;
         private Vector2 Velocity = Vector2.Zero;
         private Vector2 Jump = Vector2.Zero;
-        private Vector2 gravity = new Vector2(0, 9.8f);
-        public Character(Vector2 location, Texture2D texture)
+        private Vector2 gravity = Vector2.Zero;
+        private SpriteFont font;
+        private List<Block> blocks;
+        private bool JumpWasPressed = false;
+        private TimeSpan JumpTime = TimeSpan.Zero;
+        public Character(Vector2 location, Texture2D texture, SpriteFont font, List<Block> blocks)
         {
+            this.font = font;
+            this.blocks = blocks;
             Texture = new Sprite(texture, 1, 1);
             Location = location;
         }
@@ -33,24 +39,70 @@ namespace Square_DX.BasicClasses
             }
             return false;
         }
-        public void Update()
+        public void Update(GameTime gameTime)
         {
-
-        }
-        private void UpdateGravity()
-        {
-            if ((int)Location.Y < 300)
+            UpdateGravity(gameTime);
+            if (JumpWasPressed)
             {
-                gravity += gravity;
+                JumpTime += gameTime.ElapsedGameTime;
+
+                if (JumpTime < TimeSpan.FromMilliseconds(100))
+                {
+                    Jump += new Vector2(0, -30);
+                }
+                else
+                {
+                    JumpWasPressed = false;
+                }
             }
             else
             {
-                gravity = new Vector2(0, 9.8f);
+                
             }
+
+            Jump += gravity;
+        }
+        
+        private void UpdateGravity(GameTime gameTime)
+        {
+            bool canFall = true;
+
+            foreach (var block in blocks)
+            {
+                 if(block.IsIntersectedBy(new Vector2(Location.X , Location.Y + 1), Texture.Texture.Height))
+                {
+                    Location = new Vector2(Location.X , block.Location.Y - Texture.Texture.Height);
+                    Jump = Vector2.Zero;
+                    
+                    canFall = false;
+                    break;
+                }
+            }
+
+            if (canFall)
+            {
+                if (gravity.Equals(Vector2.Zero))
+                {
+                    gravity = new Vector2(0, 2f);
+                }
+                gravity += gravity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            }
+            else
+            {
+                gravity = Vector2.Zero;
+                JumpTime = TimeSpan.Zero;
+
+                
+            }
+
         }
         public void Draw(SpriteBatch spritebatch)
         {
             spritebatch.Draw(Texture.Texture, Location, Color.White);
+            spritebatch.DrawString(font, "Jump Y Vector" + Jump.Y + ", Gravity Y Vector" + gravity.Y, new Vector2(10, 10), Color.Black);
+            spritebatch.DrawString(font, "Jump Button was pressed: " + JumpWasPressed, new Vector2(10, 25), Color.Black);
+            spritebatch.DrawString(font, "Jump elapsed time" + JumpTime, new Vector2(10, 40), Color.Black);
         }
 
         public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
@@ -84,18 +136,27 @@ namespace Square_DX.BasicClasses
 
             }
 
+
             //TODO:
             //Update vertical here before the normalize is done
+            if (keyboardChangeState.CurrentState.IsKeyDown(Keys.Space))
+            {
 
+                if (!JumpWasPressed)
+                {
+                    JumpWasPressed = true;
 
+                }
+            }
 
+            Jump += gravity;
             //normalizes the vector so you don't move diagnal faster than other directions
             if (velocity != Vector2.Zero)
             {
                 velocity.Normalize();
             }
             Velocity = velocity * characterSpeed;
-
+            Velocity += Jump;
             Location += (Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds);
         }
     }

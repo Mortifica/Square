@@ -224,10 +224,18 @@ namespace Square_DX
                 font = game.Content.Load<SpriteFont>("startMenuFont");
                 playerTexture = game.Content.Load<Texture2D>("Blue_Square");
                 blockTexture = game.Content.Load<Texture2D>("Block_Brown");
-                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture);
+                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, blocks);
                 for (int i = 0; i < 50; i++)
                 {
                     blocks.Add(new Block(new Vector2(blockTexture.Width * i, 300), blockTexture));
+                }
+                for (int i = 0; i < 20; i++)
+                {
+                    blocks.Add(new Block(new Vector2(100 + (blockTexture.Width * i), 250), blockTexture));
+                }
+                for (int i = 0; i < 20; i++)
+                {
+                    blocks.Add(new Block(new Vector2(300 + (blockTexture.Width * i), 210), blockTexture));
                 }
                 Listener = new KeyboardListener();
                 Listener.AddSubscriber(this);
@@ -237,6 +245,7 @@ namespace Square_DX
             public override void Update(GameTime gameTime)
             {
                 Listener.Update(Keyboard.GetState(), gameTime);
+                player.Update(gameTime);
             }
             public override void Draw(SpriteBatch spriteBatch)
             {
