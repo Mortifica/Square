@@ -213,7 +213,10 @@ namespace Square_DX
             private Character player;
             private Texture2D playerTexture;
             private Texture2D blockTexture;
+            private Texture2D pickupTexture;
             private List<Block> blocks = new List<Block>();
+            private List<PickUps> pickups = new List<PickUps>();
+            private CollisionManager collisionManager;
             public PlayState(MainGameLoop game)
                 : base(game)
             {
@@ -221,21 +224,35 @@ namespace Square_DX
             }
             private void init()
             {
+                collisionManager = new CollisionManager(blocks, pickups);
                 font = game.Content.Load<SpriteFont>("startMenuFont");
                 playerTexture = game.Content.Load<Texture2D>("Blue_Square");
                 blockTexture = game.Content.Load<Texture2D>("Block_Brown");
-                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, blocks);
+                pickupTexture = game.Content.Load<Texture2D>("Ball_Purple");
+                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, collisionManager);
                 for (int i = 0; i < 50; i++)
                 {
+                    if (i > 10 && i % 3 == 0)
+                    {
+                        pickups.Add(new PickUps(pickupTexture, new Vector2(pickupTexture.Width * i, 300 - pickupTexture.Height)));
+                    }
                     blocks.Add(new Block(new Vector2(blockTexture.Width * i, 300), blockTexture));
                 }
                 for (int i = 0; i < 20; i++)
                 {
+                    if (i % 3 == 0)
+                    {
+                        pickups.Add(new PickUps(pickupTexture, new Vector2(100 + pickupTexture.Width * i, 250 - pickupTexture.Height)));
+                    }
                     blocks.Add(new Block(new Vector2(100 + (blockTexture.Width * i), 250), blockTexture));
                 }
                 for (int i = 0; i < 20; i++)
                 {
-                    blocks.Add(new Block(new Vector2(300 + (blockTexture.Width * i), 210), blockTexture));
+                    if (i % 3 == 0)
+                    {
+                        pickups.Add(new PickUps(pickupTexture, new Vector2(300 + pickupTexture.Width * i, 200 - pickupTexture.Height)));
+                    }
+                    blocks.Add(new Block(new Vector2(300 + (blockTexture.Width * i), 200), blockTexture));
                 }
                 Listener = new KeyboardListener();
                 Listener.AddSubscriber(this);
@@ -252,6 +269,10 @@ namespace Square_DX
                 foreach (var block in blocks)
                 {
                     block.Draw(spriteBatch);
+                }
+                foreach (var pickup in pickups)
+                {
+                    pickup.Draw(spriteBatch);
                 }
                 player.Draw(spriteBatch);
                 spriteBatch.DrawString(font, "Game Running", new Vector2(200, 200), Color.BurlyWood);

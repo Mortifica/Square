@@ -13,20 +13,22 @@ namespace Square_DX.BasicClasses
     {
         public Sprite Texture { get; set; }
         public Vector2 Location { get; set; }
-        private int characterSpeed = 50;
+        private int characterSpeed = 100;
         private Vector2 Velocity = Vector2.Zero;
         private Vector2 Jump = Vector2.Zero;
         private Vector2 gravity = Vector2.Zero;
         private SpriteFont font;
-        private List<Block> blocks;
         private bool JumpWasPressed = false;
         private TimeSpan JumpTime = TimeSpan.Zero;
-        public Character(Vector2 location, Texture2D texture, SpriteFont font, List<Block> blocks)
+        private bool JumpIsPressed = false;
+        private CollisionManager collisionManager;
+
+        public Character(Vector2 location, Texture2D texture, SpriteFont font, CollisionManager manager)
         {
             this.font = font;
-            this.blocks = blocks;
             Texture = new Sprite(texture, 1, 1);
             Location = location;
+            collisionManager = manager;
         }
         public bool IsIntersectedBy(Vector2 location, int size)
         {
@@ -41,14 +43,24 @@ namespace Square_DX.BasicClasses
         }
         public void Update(GameTime gameTime)
         {
+            Tuple<bool, PickUps> collision = collisionManager.PickUpsCollision(new Rectangle(new Vector2(Location.X, Location.Y + 1).ToPoint(), new Point(Texture.Texture.Height)));
+            if (collision.Item1)
+            {
+                characterSpeed += 10;
+            }
             UpdateGravity(gameTime);
             if (JumpWasPressed)
             {
                 JumpTime += gameTime.ElapsedGameTime;
 
-                if (JumpTime < TimeSpan.FromMilliseconds(100))
+                if (JumpTime < TimeSpan.FromMilliseconds(125))
                 {
-                    Jump += new Vector2(0, -30);
+                    if (JumpIsPressed)
+                    {
+                        Jump += new Vector2(0, -40);
+                        JumpIsPressed = false;
+                    }
+                    
                 }
                 else
                 {
@@ -66,24 +78,23 @@ namespace Square_DX.BasicClasses
         private void UpdateGravity(GameTime gameTime)
         {
             bool canFall = true;
+            Tuple<bool,Block> collision = collisionManager.BlockCollision(new Rectangle(new Vector2(Location.X, Location.Y + 1).ToPoint(), new Point(Texture.Texture.Height)));
 
-            foreach (var block in blocks)
+            if(collision.Item1)
             {
-                 if(block.IsIntersectedBy(new Vector2(Location.X , Location.Y + 1), Texture.Texture.Height))
-                {
-                    Location = new Vector2(Location.X , block.Location.Y - Texture.Texture.Height);
-                    Jump = Vector2.Zero;
+                Location = new Vector2(Location.X , collision.Item2.Location.Y - Texture.Texture.Height);
+                Jump = Vector2.Zero;
                     
-                    canFall = false;
-                    break;
-                }
+                canFall = false;
+                
             }
+            
 
             if (canFall)
             {
                 if (gravity.Equals(Vector2.Zero))
                 {
-                    gravity = new Vector2(0, 2f);
+                    gravity = new Vector2(0, 4f);
                 }
                 gravity += gravity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -103,6 +114,7 @@ namespace Square_DX.BasicClasses
             spritebatch.DrawString(font, "Jump Y Vector" + Jump.Y + ", Gravity Y Vector" + gravity.Y, new Vector2(10, 10), Color.Black);
             spritebatch.DrawString(font, "Jump Button was pressed: " + JumpWasPressed, new Vector2(10, 25), Color.Black);
             spritebatch.DrawString(font, "Jump elapsed time" + JumpTime, new Vector2(10, 40), Color.Black);
+            
         }
 
         public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
@@ -141,7 +153,7 @@ namespace Square_DX.BasicClasses
             //Update vertical here before the normalize is done
             if (keyboardChangeState.CurrentState.IsKeyDown(Keys.Space))
             {
-
+                JumpIsPressed = true;
                 if (!JumpWasPressed)
                 {
                     JumpWasPressed = true;

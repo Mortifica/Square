@@ -40,6 +40,8 @@
   <ItemGroup>
     <Compile Include="BasicClasses\Block.cs" />
     <Compile Include="BasicClasses\Character.cs" />
+    <Compile Include="BasicClasses\CollisionManager.cs" />
+    <Compile Include="BasicClasses\PickUps.cs" />
     <Compile Include="BasicClasses\Sprite.cs" />
     <Compile Include="MainGameLoop.cs" />
     <Compile Include="BasicClasses\GameState.cs" />
