@@ -15,8 +15,8 @@ namespace Square_DX
     {
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
-        private GameState CurrentState { get; set; } 
-
+        private GameState CurrentState { get; set; }
+        private Camera2D Camera;
         public MainGameLoop()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -44,6 +44,7 @@ namespace Square_DX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            Camera = new Camera2D();
             CurrentState = new StartState(this);
             // TODO: use this.Content to load your game content here
         }
@@ -80,9 +81,15 @@ namespace Square_DX
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
             // TODO: Add your drawing code here
-            spriteBatch.Begin();
+            CurrentState.UpdateViewPort();
+            spriteBatch.Begin(SpriteSortMode.BackToFront,
+                        BlendState.AlphaBlend,
+                        null,
+                        null,
+                        null,
+                        null,
+                        Camera.GetMatrixTransformation(GraphicsDevice));
 
             CurrentState.Draw(spriteBatch);
 
@@ -197,6 +204,12 @@ namespace Square_DX
                 }
             }
 
+            public override void UpdateViewPort()
+            {
+                //not needed in mainmenu right now
+
+            }
+
             private enum Options
             {
                 StartGame,
@@ -229,8 +242,8 @@ namespace Square_DX
                 playerTexture = game.Content.Load<Texture2D>("Blue_Square");
                 blockTexture = game.Content.Load<Texture2D>("Block_Brown");
                 pickupTexture = game.Content.Load<Texture2D>("Ball_Purple");
-                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, collisionManager);
-                for (int i = 0; i < 50; i++)
+                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, collisionManager,game.spriteBatch);
+                for (int i = 0; i < 500; i++)
                 {
                     if (i > 10 && i % 3 == 0)
                     {
@@ -280,6 +293,11 @@ namespace Square_DX
             public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
             {
                 
+            }
+
+            public override void UpdateViewPort()
+            {
+                game.Camera.Location = player.UpdateViewPort(game.spriteBatch);
             }
         }
 

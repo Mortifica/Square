@@ -22,13 +22,15 @@ namespace Square_DX.BasicClasses
         private TimeSpan JumpTime = TimeSpan.Zero;
         private bool JumpIsPressed = false;
         private CollisionManager collisionManager;
+        private SpriteBatch view;
 
-        public Character(Vector2 location, Texture2D texture, SpriteFont font, CollisionManager manager)
+        public Character(Vector2 location, Texture2D texture, SpriteFont font, CollisionManager manager, SpriteBatch view)
         {
             this.font = font;
             Texture = new Sprite(texture, 1, 1);
             Location = location;
             collisionManager = manager;
+            this.view = view;
         }
         public bool IsIntersectedBy(Vector2 location, int size)
         {
@@ -110,13 +112,22 @@ namespace Square_DX.BasicClasses
         }
         public void Draw(SpriteBatch spritebatch)
         {
+            
+            
             spritebatch.Draw(Texture.Texture, Location, Color.White);
             spritebatch.DrawString(font, "Jump Y Vector" + Jump.Y + ", Gravity Y Vector" + gravity.Y, new Vector2(10, 10), Color.Black);
             spritebatch.DrawString(font, "Jump Button was pressed: " + JumpWasPressed, new Vector2(10, 25), Color.Black);
             spritebatch.DrawString(font, "Jump elapsed time" + JumpTime, new Vector2(10, 40), Color.Black);
             
         }
-
+        public Vector2 UpdateViewPort(SpriteBatch spritebatch)
+        {
+            float centerX = (spritebatch.GraphicsDevice.Viewport.X) + Location.X;
+            float centerY = (spritebatch.GraphicsDevice.Viewport.Y) + Location.Y;
+            return new Vector2(centerX, centerY);
+           
+            
+        }
         public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
         {
             moveCharacter(keyboardChangeState, gameTime);
@@ -168,8 +179,12 @@ namespace Square_DX.BasicClasses
                 velocity.Normalize();
             }
             Velocity = velocity * characterSpeed;
+            
             Velocity += Jump;
-            Location += (Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            var tempVector = (Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds);
+            Location += tempVector;
+            
         }
     }
 }

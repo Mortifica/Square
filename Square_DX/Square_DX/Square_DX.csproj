@@ -43,6 +43,7 @@
     <Compile Include="BasicClasses\CollisionManager.cs" />
     <Compile Include="BasicClasses\PickUps.cs" />
     <Compile Include="BasicClasses\Sprite.cs" />
+    <Compile Include="Camera2D.cs" />
     <Compile Include="MainGameLoop.cs" />
     <Compile Include="BasicClasses\GameState.cs" />
     <Compile Include="Input\IInputSubscriber.cs" />

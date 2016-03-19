@@ -22,5 +22,6 @@ namespace Square_DX.BasicClasses
         public abstract void Update(GameTime gameTime);
 
         public abstract void Draw(SpriteBatch spriteBatch);
+        public abstract void UpdateViewPort();
     }
 }
