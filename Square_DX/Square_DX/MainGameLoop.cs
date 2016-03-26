@@ -5,12 +5,14 @@ using Microsoft.Xna.Framework.Input;
 using Square_DX.BasicClasses;
 using System.Collections.Generic;
 using Square_DX.Input;
+using Square_DX.Menu;
+using Square_DX.Screens;
 
 namespace Square_DX
 {
     /// <summary>
     /// This is the main type for your game.
-    /// </summary>
+    /// </summary>a
     public class MainGameLoop : Game
     {
         private GraphicsDeviceManager graphics;
@@ -44,8 +46,9 @@ namespace Square_DX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            Camera = new Camera2D();
             CurrentState = new StartState(this);
+            Camera = new Camera2D(CurrentState);
+            
             // TODO: use this.Content to load your game content here
         }
 
@@ -82,7 +85,6 @@ namespace Square_DX
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             // TODO: Add your drawing code here
-            CurrentState.UpdateViewPort();
             spriteBatch.Begin(SpriteSortMode.BackToFront,
                         BlendState.AlphaBlend,
                         null,
@@ -97,23 +99,14 @@ namespace Square_DX
             base.Draw(gameTime);
         }
         /// <summary>
-        /// Start Menu
+        /// Start State
         /// </summary>
-        public class StartState : GameState, IInputSubscriber
+        public class StartState : GameState, IInputSubscriber 
         {
-            private SpriteFont font;
-            private Sprite background;
-            private Options[] MenuOptions = new Options[3]
-            {
-                Options.StartGame,
-                Options.Help,
-                Options.Credits
-            };
-            private Vector2 MenuLocation = new Vector2(100, 100);
-            private int currentOption = 1;
-            private TimeSpan elapseTime = TimeSpan.Zero;
-            private int menuSpeed = 100;
-            private int currentColor = 0;
+            private OverLayNone testOverlay;
+            private OverlayMainMenu mainMenu;
+            private OverlayAbstract currentOverlay;
+
             public StartState(MainGameLoop game)
                 : base(game)
             {
@@ -121,100 +114,41 @@ namespace Square_DX
             }
             private void init()
             {
-                font = game.Content.Load<SpriteFont>("startMenuFont");
+                var font = game.Content.Load<SpriteFont>("startMenuFont");
+                    
+                var menuScreen = new MainMenuScreen(this, font, null);
                 Listener = new KeyboardListener();
                 Listener.AddSubscriber(this);
+                testOverlay = new OverLayNone(menuScreen);
+
+                currentOverlay = testOverlay;
             }
 
             public override void Update(GameTime gameTime)
             {
                 Listener.Update(Keyboard.GetState(), gameTime);
+                currentOverlay.Update(gameTime);
             }
 
             public override void Draw(SpriteBatch spriteBatch)
             {
-                Color color = Color.Black;
-                Color topColor = Color.Black;
-                currentColor += 1;
-                if (currentColor % 1 == 0)
-                {
-                    topColor = Color.Black;
-                }
-                if (currentColor % 2 == 0)
-                {
-                    topColor = Color.Pink;
-                }
-                if (currentColor % 3 == 0)
-                {
-                    topColor = Color.Blue;
-                }
-                if (currentColor >= 1000)
-                {
-                    currentColor = 0;
-                }
-
-
-                Vector2 menu = MenuLocation;
-                spriteBatch.DrawString(font, "Press \"A\" to select an option.", new Vector2(50, 40), topColor);
-                spriteBatch.DrawString(font, "Navigate Menu with W,S,UP,Down.", new Vector2(50, 60), topColor);
-
-                for (int i = 0; i < MenuOptions.Length; i++)
-                {
-                    if (currentOption == i + 1)
-                    {
-                        color = Color.Red;
-                    }
-                    else
-                    {
-                        color = Color.Black;
-                    }
-                    spriteBatch.DrawString(font, MenuOptions[i].ToString(), menu += new Vector2(0, font.LineSpacing), color);
-                }
-                
+                currentOverlay.Draw(spriteBatch);
             }
-            /// <summary>
-            /// Contains the MainMenu
-            /// </summary>
-            /// <param name="keyboardChangeState"></param>
-            /// <param name="gameTime"></param>
+            public void NextState()
+            {
+                game.CurrentState = new PlayState(game);
+            }
+
             public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
             {
-
-                elapseTime += gameTime.ElapsedGameTime;
-                //needs a lot of work to make the transitions ok speed wise
-                if ((keyboardChangeState.CurrentState.IsKeyDown(Keys.W) || keyboardChangeState.CurrentState.IsKeyDown(Keys.Up)) && elapseTime >= TimeSpan.FromMilliseconds(menuSpeed))
+                if (keyboardChangeState.CurrentState.IsKeyDown(Keys.Tab))
                 {
-                    currentOption = currentOption - 1;
-                    if (currentOption < 1) currentOption = 1;
-
+                    var tempScreen = currentOverlay.GetCurrentScreen();
+                    Listener.AddSubscriber((MainMenuScreen)tempScreen);
+                    Listener.RemoveSubscriber(this);
+                    mainMenu = new OverlayMainMenu(tempScreen);
+                    currentOverlay = mainMenu;
                 }
-                if ((keyboardChangeState.CurrentState.IsKeyDown(Keys.S) || keyboardChangeState.CurrentState.IsKeyDown(Keys.Down)) && elapseTime >= TimeSpan.FromMilliseconds(menuSpeed))
-                {
-                    currentOption = currentOption + 1;
-                    if (currentOption > 3) currentOption = 3;
-                }
-                if(keyboardChangeState.CurrentState.IsKeyDown(Keys.A)
-                    && MenuOptions[currentOption - 1].Equals(Options.StartGame))
-                {
-                    game.CurrentState = new PlayState(game);
-                }
-                if (elapseTime > TimeSpan.FromMilliseconds(menuSpeed))
-                {
-                    elapseTime = TimeSpan.Zero;
-                }
-            }
-
-            public override void UpdateViewPort()
-            {
-                //not needed in mainmenu right now
-
-            }
-
-            private enum Options
-            {
-                StartGame,
-                Help,
-                Credits
             }
         }
         /// <summary>
@@ -222,14 +156,10 @@ namespace Square_DX
         /// </summary>
         public class PlayState : GameState, IInputSubscriber
         {
-            private SpriteFont font;
-            private Character player;
-            private Texture2D playerTexture;
-            private Texture2D blockTexture;
-            private Texture2D pickupTexture;
-            private List<Block> blocks = new List<Block>();
-            private List<PickUps> pickups = new List<PickUps>();
-            private CollisionManager collisionManager;
+
+            private OverLayNone level;
+            private OverlayDebug debugLevel;
+            private OverlayAbstract currentOverlay;
             public PlayState(MainGameLoop game)
                 : base(game)
             {
@@ -237,67 +167,30 @@ namespace Square_DX
             }
             private void init()
             {
-                collisionManager = new CollisionManager(blocks, pickups);
-                font = game.Content.Load<SpriteFont>("startMenuFont");
-                playerTexture = game.Content.Load<Texture2D>("Blue_Square");
-                blockTexture = game.Content.Load<Texture2D>("Block_Brown");
-                pickupTexture = game.Content.Load<Texture2D>("Ball_Purple");
-                player = new Character(new Vector2(100, 300 - playerTexture.Height), playerTexture, font, collisionManager,game.spriteBatch);
-                for (int i = 0; i < 500; i++)
-                {
-                    if (i > 10 && i % 3 == 0)
-                    {
-                        pickups.Add(new PickUps(pickupTexture, new Vector2(pickupTexture.Width * i, 300 - pickupTexture.Height)));
-                    }
-                    blocks.Add(new Block(new Vector2(blockTexture.Width * i, 300), blockTexture));
-                }
-                for (int i = 0; i < 20; i++)
-                {
-                    if (i % 3 == 0)
-                    {
-                        pickups.Add(new PickUps(pickupTexture, new Vector2(100 + pickupTexture.Width * i, 250 - pickupTexture.Height)));
-                    }
-                    blocks.Add(new Block(new Vector2(100 + (blockTexture.Width * i), 250), blockTexture));
-                }
-                for (int i = 0; i < 20; i++)
-                {
-                    if (i % 3 == 0)
-                    {
-                        pickups.Add(new PickUps(pickupTexture, new Vector2(300 + pickupTexture.Width * i, 200 - pickupTexture.Height)));
-                    }
-                    blocks.Add(new Block(new Vector2(300 + (blockTexture.Width * i), 200), blockTexture));
-                }
+                XOffset = .25f;
+                YOffset = .75f;
                 Listener = new KeyboardListener();
+                var screen = new TestLevelScreen(game.Content, Listener);
+                level = new OverLayNone(screen);
+                currentOverlay = level;
+                
                 Listener.AddSubscriber(this);
-                Listener.AddSubscriber(player);
+                game.Camera.Focus = screen.GetFocus();
+                game.Camera.FocusOffest = new Vector3((float)(game.GraphicsDevice.Viewport.Width / 2),(float)(game.GraphicsDevice.Viewport.Height / 2), 0);
             }
 
             public override void Update(GameTime gameTime)
             {
                 Listener.Update(Keyboard.GetState(), gameTime);
-                player.Update(gameTime);
+                currentOverlay.Update(gameTime);
             }
             public override void Draw(SpriteBatch spriteBatch)
             {
-                foreach (var block in blocks)
-                {
-                    block.Draw(spriteBatch);
-                }
-                foreach (var pickup in pickups)
-                {
-                    pickup.Draw(spriteBatch);
-                }
-                player.Draw(spriteBatch);
-                spriteBatch.DrawString(font, "Game Running", new Vector2(200, 200), Color.BurlyWood);
+                currentOverlay.Draw(spriteBatch);
             }
             public void NotifyOfChange(KeyboardChangeState keyboardChangeState, GameTime gameTime)
             {
                 
-            }
-
-            public override void UpdateViewPort()
-            {
-                game.Camera.Location = player.UpdateViewPort(game.spriteBatch);
             }
         }
 

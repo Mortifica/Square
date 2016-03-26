@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Square_DX.BasicClasses
 {
-    public class Character : IInputSubscriber
+    public class Character : IInputSubscriber, ICameraFocus
     {
         public Sprite Texture { get; set; }
         public Vector2 Location { get; set; }
@@ -22,15 +22,13 @@ namespace Square_DX.BasicClasses
         private TimeSpan JumpTime = TimeSpan.Zero;
         private bool JumpIsPressed = false;
         private CollisionManager collisionManager;
-        private SpriteBatch view;
 
-        public Character(Vector2 location, Texture2D texture, SpriteFont font, CollisionManager manager, SpriteBatch view)
+        public Character(Vector2 location, Texture2D texture, SpriteFont font, CollisionManager manager)
         {
             this.font = font;
             Texture = new Sprite(texture, 1, 1);
             Location = location;
             collisionManager = manager;
-            this.view = view;
         }
         public bool IsIntersectedBy(Vector2 location, int size)
         {
@@ -112,12 +110,12 @@ namespace Square_DX.BasicClasses
         }
         public void Draw(SpriteBatch spritebatch)
         {
-            
+
             
             spritebatch.Draw(Texture.Texture, Location, Color.White);
-            spritebatch.DrawString(font, "Jump Y Vector" + Jump.Y + ", Gravity Y Vector" + gravity.Y, new Vector2(10, 10), Color.Black);
-            spritebatch.DrawString(font, "Jump Button was pressed: " + JumpWasPressed, new Vector2(10, 25), Color.Black);
-            spritebatch.DrawString(font, "Jump elapsed time" + JumpTime, new Vector2(10, 40), Color.Black);
+            spritebatch.DrawString(font, "Jump Y Vector" + Jump.Y + ", Gravity Y Vector" + gravity.Y, new Vector2(-300, -160) + Location, Color.Black);
+            spritebatch.DrawString(font, "Jump Button was pressed: " + JumpWasPressed, new Vector2(-300, -185) + Location, Color.Black);
+            spritebatch.DrawString(font, "Jump elapsed time" + JumpTime, new Vector2(-300, -200) + Location, Color.Black);
             
         }
         public Vector2 UpdateViewPort(SpriteBatch spritebatch)

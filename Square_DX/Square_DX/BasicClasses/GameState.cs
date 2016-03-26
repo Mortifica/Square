@@ -13,15 +13,17 @@ namespace Square_DX.BasicClasses
         protected KeyboardListener Listener { get; set; }
 
         protected MainGameLoop game { get; set; }
-
-        public GameState(MainGameLoop game)
+        public float XOffset { get; set; }//used by the camera to adjust the corner of the ViewPort Bounds
+        public float YOffset { get; set; }//used by the camera to adjust the corner of the ViewPort Bounds
+        public GameState(MainGameLoop game, float xOffset = 0, float yOffset = 0)
         {
+            XOffset = xOffset;
+            YOffset = yOffset;
             this.game = game;
         }
 
         public abstract void Update(GameTime gameTime);
 
         public abstract void Draw(SpriteBatch spriteBatch);
-        public abstract void UpdateViewPort();
     }
 }

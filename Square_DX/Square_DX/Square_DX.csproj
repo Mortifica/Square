@@ -41,6 +41,9 @@
     <Compile Include="BasicClasses\Block.cs" />
     <Compile Include="BasicClasses\Character.cs" />
     <Compile Include="BasicClasses\CollisionManager.cs" />
+    <Compile Include="BasicClasses\ICameraFocus.cs" />
+    <Compile Include="Menu\IScreen.cs" />
+    <Compile Include="Menu\OverlayAbstract.cs" />
     <Compile Include="BasicClasses\PickUps.cs" />
     <Compile Include="BasicClasses\Sprite.cs" />
     <Compile Include="Camera2D.cs" />
@@ -50,8 +53,13 @@
     <Compile Include="Input\KeyboardChangeState.cs" />
     <Compile Include="Input\KeyboardListener.cs" />
     <Compile Include="Input\MouseListener.cs" />
+    <Compile Include="Menu\OverlayDebug.cs" />
+    <Compile Include="Menu\OverlayMainMenu.cs" />
+    <Compile Include="Menu\OverLayNone.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Screens\MainMenuScreen.cs" />
+    <Compile Include="Screens\TestLevelScreen.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

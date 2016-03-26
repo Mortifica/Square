@@ -9,6 +9,7 @@ namespace Square_DX.Input
     {
         private KeyboardChangeState KeyboardCurrentState { get; set; }
         private List<IInputSubscriber> Subscribers { get; set; }
+        private List<IInputSubscriber> NewSubscribers { get; set; }
         private double elapsedTime = 0;
         private static readonly int MILLISECONDS_PER_SECOND = 1000;
         private static readonly int UPDATES_PER_SECOND = 70;
@@ -19,12 +20,14 @@ namespace Square_DX.Input
         {
             KeyboardCurrentState = new KeyboardChangeState();
             Subscribers = new List<IInputSubscriber>();
+            NewSubscribers = new List<IInputSubscriber>();
         }
 
         public void Update(KeyboardState currentState, GameTime gameTime)
         {
-            
-            
+
+            Subscribers = NewSubscribers;
+
             elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
 
             KeyboardCurrentState.SetState(currentState);
@@ -41,19 +44,22 @@ namespace Square_DX.Input
         {
             if(subscriber != null && !Subscribers.Contains(subscriber))
             {
-                Subscribers.Add(subscriber);
+                NewSubscribers.Add(subscriber);
             }
         }
         public void RemoveSubscriber(IInputSubscriber subscriber)
         {
-            Subscribers.Remove(subscriber);
-        }
+            NewSubscribers.Remove(subscriber);
+        } 
         public void notifySubscribers(GameTime gameTime)
         {
-            foreach (var subscriber in Subscribers)
+            IInputSubscriber[] temp = new IInputSubscriber[Subscribers.Count];
+            Subscribers.CopyTo(temp);
+            foreach (var subscriber in temp)
             {
                 subscriber.NotifyOfChange(KeyboardCurrentState, gameTime);
             }
+            
         }
     
     }

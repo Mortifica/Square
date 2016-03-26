@@ -15,7 +15,7 @@ namespace Square_DX.Input
 
         public bool HasChanged()
         {
-            if (PreviousState.Equals(CurrentState))
+            if (!PreviousState.GetPressedKeys().Equals(CurrentState.GetPressedKeys()))
             {
                 return true;
             }
